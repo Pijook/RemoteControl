@@ -10,15 +10,18 @@ import java.net.Socket;
 
 public class ServerClient extends Thread {
 
+    private final PacketMapper mapper;
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
 
     private final int moveByPixels = 50;
 
-    public ServerClient(Socket socket) {
-        System.out.println("Creating client!");
+    public ServerClient(PacketMapper mapper, Socket socket) {
         this.clientSocket = socket;
+        this.mapper = mapper;
+
+        System.out.println("Creating client!");
     }
 
     public void run() {
@@ -48,7 +51,17 @@ public class ServerClient extends Thread {
                 return;
             }
 
-            switch (inputLine) {
+            Packet packet = mapper.mapPacket(inputLine);
+
+            if(packet == null) {
+                return;
+            }
+
+            if(!packet.getPassword().equals(Storage.PASSWORD)) {
+                return;
+            }
+
+            switch (packet.getTitle()) {
                 case "leftMouseButton" -> {
                     Main.robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
                     Main.robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
